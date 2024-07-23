@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minecraft Beta 1.7.3 Music+</title>
+    <link rel="icon" href="b1.7.3 music+ logo.png" type="image/x-icon">
+    <style>
+        @font-face {
+            font-family: Minecraftia;
+            src: url("Minecraftia-Regular.ttf") format("truetype");
+        }
+        body {
+            font-family: Minecraftia, sans-serif;
+            background-image: url("background.png");
+            background-repeat: repeat;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 100%;
+            max-width: 1300px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #322418;
+            border: 1px solid #000;
+            display: table; /* Using table display for older IE support */
+        }
+        h1 {
+            color: #FFFFFF;
+            text-align: left;
+        }
+        p {
+            font-size: 1.1em;
+            line-height: 1.6;
+            color: #FFFFFF;
+        }
+        .download-btn {
+            display: block;
+            margin: 20px auto;
+            padding: 10px;
+            width: 400px;
+            height: 40px;
+            background: url("button.png") no-repeat;
+            color: #FFFFFF;
+            text-align: center;
+            text-decoration: none;
+        }
+        .download-btn:hover {
+            background: url("hover.png") no-repeat;
+            color: #FFFFA0;
+        }
+        #cube-container {
+            display: table-cell;
+            width: 50%;
+            height: 400px;
+            margin-right: 20px;
+        }
+        .text-container {
+            display: table-cell;
+            width: 40%;
+            padding-left: 20px;
+        }
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="cube-container"></div>
+        <div class="text-container">
+            <h1>Minecraft Beta 1.7.3 Music+</h1>
+            <p>
+                Welcome! This is the download page for my mod, b1.7.3 Music+. This mod adds music (background and records), dimensional music (overworld, nether, void (end music don't ask)), a music visualizer (JavaX required), LCE (Legacy Console Edition) stuff, and a couple server exclusives.
+            </p>
+            <p>
+                Here's the download. It's a base class edit, so delete META-INF. It's hard to explain, but it's like installing ModLoader for b1.7.3, but with my mod instead of ModLoader.
+            </p>
+            <p>
+                Please note that the client version has more priority than the server version, so the server version is likely out of date.
+            </p>
+            <a id="client-download" href="#" class="download-btn">Download Latest Build (Client)</a>
+            <a id="server-download" href="#" class="download-btn">Download Latest Build (Server)</a>
+            <p>
+                Use Betacraft? Download the info file and put it in .betacraft/versions/jsons!
+            </p>
+            <a id="info-download" href="#" class="download-btn">Download Info File</a>
+        </div>
+    </div>
+    
+    <!-- Add polyfill for IE support -->
+    <script src="https://cdn.jsdelivr.net/npm/es6-promise/dist/es6-promise.auto.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/whatwg-fetch/dist/fetch.umd.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script>
+        // Initialize scene, camera, and renderer
+        var scene = new THREE.Scene();
+        var camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+        var renderer = new THREE.WebGLRenderer({ alpha: true });
+        renderer.setClearColor(0x000000, 0); // transparent background
+        renderer.setSize(400, 400);
+        document.getElementById('cube-container').appendChild(renderer.domElement);
+
+        // Load textures with nearest filter
+        var loader = new THREE.TextureLoader();
+        var sideTexture = loader.load('side.png', function (texture) {
+            texture.magFilter = THREE.NearestFilter;
+            texture.minFilter = THREE.NearestFilter;
+        });
+        var topTexture = loader.load('top.png', function (texture) {
+            texture.magFilter = THREE.NearestFilter;
+            texture.minFilter = THREE.NearestFilter;
+        });
+        var bottomTexture = loader.load('bottom.png', function (texture) {
+            texture.magFilter = THREE.NearestFilter;
+            texture.minFilter = THREE.NearestFilter;
+        });
+
+        // Create cube with different textures for each face
+        var materials = [
+            new THREE.MeshBasicMaterial({ map: sideTexture }), // right
+            new THREE.MeshBasicMaterial({ map: sideTexture }), // left
+            new THREE.MeshBasicMaterial({ map: topTexture }),  // top
+            new THREE.MeshBasicMaterial({ map: bottomTexture }), // bottom
+            new THREE.MeshBasicMaterial({ map: sideTexture }), // front
+            new THREE.MeshBasicMaterial({ map: sideTexture })  // back
+        ];
+        var geometry = new THREE.BoxGeometry(3.5, 3.5, 3.5); // increase the size of the cube
+        var cube = new THREE.Mesh(geometry, materials);
+        scene.add(cube);
+
+        // Position the camera
+        camera.position.z = 5;
+
+        // Add controls for user interaction
+        var controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.enableZoom = true;
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            if (!controls.isDragging) {
+                cube.rotation.y -= 0.01;
+            }
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // Handle window resize
+        window.addEventListener('resize', function () {
+            var width = document.getElementById('cube-container').clientWidth;
+            var height = document.getElementById('cube-container').clientHeight;
+            renderer.setSize(width, height);
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+        });
+
+        // Fetch latest release from GitHub and update download links
+        fetch('https://api.github.com/repos/SprainedSpark89/b1.7.3-music-builds/releases/latest')
+            .then(function (response) {
+                return response.json();
+            })
+            .then(function (data) {
+                var releaseId = data.tag_name.replace('Development-', '');
+                var clientDownloadLink = 'https://github.com/SprainedSpark89/b1.7.3-music-builds/releases/download/Development-' + releaseId + '/MusicPlus-Development-' + releaseId + '-client.zip';
+                var serverDownloadLink = 'https://github.com/SprainedSpark89/b1.7.3-music-builds/releases/download/Development-' + releaseId + '/MusicPlus-Development-' + releaseId + '-server.zip';
+                document.getElementById('client-download').href = clientDownloadLink;
+                document.getElementById('server-download').href = serverDownloadLink;
+                document.getElementById('info-download').href = 'https://sprainedspark89.github.io/b1.7.3-music-resources/b1.7.3 music+ dev.info';
+            })
+            .catch(function (error) {
+                console.error('Error fetching the latest release:', error);
+            });
+    </script>
+</body>
+</html>
